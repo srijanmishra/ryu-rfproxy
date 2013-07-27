@@ -140,7 +140,19 @@ class RFProxy(app_manager.RyuApp):
                                                    hub.sleep)
         self.ipc.listen(RFSERVER_RFPROXY_CHANNEL, RFProtocolFactory(),
                         RFProcessor(), False)
+        self.ipc.listen(RFMONITOR_RFPROXY_CHANNEL, RFProtocolFactory(),
+                        RFProcessor(), False)
+        self.register_controller(addr=CONF.ofp_listen_host,
+                                 port=CONF.ofp_tcp_listen_port,
+                                 role=self.role)
         log.info("RFProxy running.")
+
+    def register_controller(self, addr, port, role):
+        '''Register controller with RFMonitor'''
+        if not addr:
+            addr = '127.0.0.1'
+        msg = ControllerRegister(ct_addr=addr, ct_port=port, ct_role=role)
+        self.ipc.send(RFMONITOR_RFPROXY_CHANNEL, RFMONITOR_ID, msg)
 
     #Event handlers
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
