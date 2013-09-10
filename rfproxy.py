@@ -119,7 +119,18 @@ class RFProcessor(IPC.IPCMessageProcessor):
                                  msg.get_id())
         if type_ == DATA_PLANE_MAP:
             table.update_dp_port(msg.get_dp_id(), msg.get_dp_port(),
-            msg.get_vs_id(), msg.get_vs_port())
+                                 msg.get_vs_id(), msg.get_vs_port())
+        if type_ == ELECT_MASTER:
+            host = msg.get_ct_addr()
+            port = msg.get_ct_port()
+            if not CONF.ofp_listen_host:
+                CONF.ofp_listen_host = '127.0.0.1'
+            if (CONF.ofp_listen_host == host and
+                CONF.ofp_tcp_listen_port == port):
+                CONF.ofp_role = 'master'
+                for dp in datapaths.dps.values():
+                    ofp_role = parse_role_request('master', dp)
+                    send_role_request(ofp_role, dp)
         return True
 
 
