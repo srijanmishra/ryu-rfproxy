@@ -123,8 +123,6 @@ class RFProcessor(IPC.IPCMessageProcessor):
         if type_ == ELECT_MASTER:
             host = msg.get_ct_addr()
             port = msg.get_ct_port()
-            if not CONF.ofp_listen_host:
-                CONF.ofp_listen_host = '127.0.0.1'
             if (CONF.ofp_listen_host == host and
                 CONF.ofp_tcp_listen_port == port):
                 CONF.ofp_role = 'master'
@@ -145,6 +143,8 @@ class RFProxy(app_manager.RyuApp):
 
         ID = 0
         self.role = CONF.ofp_role
+        if not CONF.ofp_listen_host:
+                CONF.ofp_listen_host = '127.0.0.1'
         self.ipc = MongoIPC.MongoIPCMessageService(MONGO_ADDRESS,
                                                    MONGO_DB_NAME, str(ID),
                                                    hub_thread_wrapper,
@@ -157,8 +157,6 @@ class RFProxy(app_manager.RyuApp):
 
     def register_controller(self, addr, port, role):
         '''Register controller with RFMonitor'''
-        if not addr:
-            addr = '127.0.0.1'
         msg = ControllerRegister(ct_addr=addr, ct_port=port, ct_role=role)
         self.ipc.send(RFMONITOR_RFPROXY_CHANNEL, RFMONITOR_ID, msg)
 
