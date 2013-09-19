@@ -155,9 +155,11 @@ class RFProxy(app_manager.RyuApp):
                         RFProcessor(), False)
         log.info("RFProxy running.")
 
-    def register_controller(self, addr, port, role):
+    def register_controller(self):
         '''Register controller with RFMonitor'''
-        msg = ControllerRegister(ct_addr=addr, ct_port=port, ct_role=role)
+        msg = ControllerRegister(ct_addr=CONF.ofp_listen_host,
+                                 ct_port=CONF.ofp_tcp_listen_port,
+                                 ct_role=self.role)
         self.ipc.send(RFMONITOR_RFPROXY_CHANNEL, RFMONITOR_ID, msg)
 
     #Event handlers
@@ -169,9 +171,7 @@ class RFProxy(app_manager.RyuApp):
         ofp_role = parse_role_request(self.role, dp)
         send_role_request(ofp_role, dp)
         if ev.enter:
-            self.register_controller(addr=CONF.ofp_listen_host,
-                                 port=CONF.ofp_tcp_listen_port,
-                                 role=self.role)
+            self.register_controller()
             log.info("Datapath is up (dp_id=%s)", dpid_to_str(dpid))
             datapaths.register(dp)
             for port in ports:
